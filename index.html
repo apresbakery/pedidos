@@ -47,11 +47,13 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;marg
 .logo img{display:block;width:137.3%;max-width:none;margin-left:-16.48%;margin-top:-36.61%;filter:var(--logo-filter)}
 .tag{font-family:var(--f-display);font-style:italic;font-size:17px;color:var(--muted)}
 .modepill{display:inline-flex;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700;background:var(--navy-soft);color:var(--navy)}
+.hero.photo{background-size:cover;background-position:center;color:#fff;min-height:240px;justify-content:flex-end}
+.hero.photo::after{display:none}
 .hero{margin-top:18px;border-radius:22px;background:var(--navy);color:var(--navy-ink);padding:24px 22px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .hero::after{content:"";position:absolute;right:-40px;bottom:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle at 40% 40%, color-mix(in srgb,var(--caramel) 70%, #fff 0%), transparent 70%);opacity:.45}
 .hero .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.75;font-weight:600}
 .hero h1{font-style:italic;font-weight:500;font-size:32px;line-height:1.05;max-width:12ch}
-.hero .btn{align-self:flex-start;background:var(--caramel);border-color:var(--caramel);color:#fff;margin-top:8px;position:relative;z-index:1}
+.hero .btn{align-self:flex-start;background:var(--caramel);border-color:var(--caramel);color:var(--on-acc,#fff);margin-top:8px;position:relative;z-index:1}
 .aviso{font-size:13px;color:var(--muted);text-align:center;max-width:46ch;margin:14px auto 0}
 .sec-t{font-family:var(--f-display);font-style:italic;font-weight:500;font-size:24px;margin:26px 0 12px}
 .flavs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -107,7 +109,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;marg
 .step b{min-width:20px;text-align:center;font-size:16px}
 .bottom{position:sticky;bottom:0;z-index:5;background:linear-gradient(to top,var(--bg) 70%,transparent);padding-block:14px calc(14px + env(safe-area-inset-bottom,0px))}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 16px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:15px;color:var(--ink);text-decoration:none}
-.btn.pri{background:var(--caramel);border-color:var(--caramel);color:#fff}
+.btn.pri{background:var(--caramel);border-color:var(--caramel);color:var(--on-acc,#fff)}
 .btn.dark{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .btn.big{width:100%;padding:16px;font-size:17px;border-radius:999px;box-shadow:0 4px 0 color-mix(in srgb,var(--caramel) 60%,#000 40%)}
 .btn.big:disabled{background:var(--sunk);border-color:var(--sunk);color:var(--muted);box-shadow:none;cursor:not-allowed}
@@ -163,7 +165,31 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;marg
 (() => {
 const D = JSON.parse(document.getElementById("data").textContent);
 const LOGO = document.getElementById("logo-src").textContent.trim();
-const C = D.config || {}, SAB = D.sabores || {};
+const C = D.config || {}, SAB = D.sabores || {}, DS = D.diseno || {};
+const DT = Object.assign({eyebrow:"¿Qué se te antoja?", titulo:"Arma tu pedido", boton:"Empezar pedido", tag:"Galletas y repostería artesanal · Zapopan", saboresT:"Nuestros sabores"}, DS.textos || {});
+const DM = Object.assign({sabores:true, info:true, instagram:true}, DS.mostrar || {});
+const IG = DS.instagram === undefined ? "@apres.bakery" : DS.instagram;
+(function applyDesign(){
+  const FUENTES = {clasica:["Playfair Display","Figtree"], elegante:["Cormorant Garamond","Figtree"], moderna:["DM Serif Display","DM Sans"], suave:["Fraunces","Nunito"]};
+  const hex = h => /^#[0-9a-f]{6}$/i.test(h||"") ? h : "";
+  const lum = h => { const n = parseInt(h.slice(1),16); const c = [n>>16&255, n>>8&255, n&255].map(v => { v/=255; return v<=.03928 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4); }); return .2126*c[0]+.7152*c[1]+.0722*c[2]; };
+  const c = DS.colores || {}, pr = hex(c.principal), ac = hex(c.acento), fo = hex(c.fondo);
+  const L = [], Dk = [];
+  if (pr){ L.push(`--navy:${pr}`, `--navy-ink:${lum(pr)>.45?"#1D2433":"#FFFFFF"}`, `--navy-soft:color-mix(in srgb, ${pr} 12%, #fff)`); }
+  if (ac){ L.push(`--caramel:${ac}`, `--caramel-soft:color-mix(in srgb, ${ac} 14%, #fff)`, `--on-acc:${lum(ac)>.45?"#1D2433":"#FFFFFF"}`);
+           Dk.push(`--caramel:color-mix(in srgb, ${ac} 70%, #fff)`, `--caramel-soft:color-mix(in srgb, ${ac} 22%, #141821)`, `--on-acc:#141821`); }
+  if (fo){ L.push(`--bg:${fo}`, `--ground:color-mix(in srgb, ${fo} 93%, #000)`); }
+  let css = L.length ? `:root{${L.join(";")}}` : "";
+  if (Dk.length) css += `@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){${Dk.join(";")}}}:root[data-theme="dark"]{${Dk.join(";")}}`;
+  const f = FUENTES[DS.fuente];
+  if (f && DS.fuente !== "clasica"){
+    const l = document.createElement("link"); l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=" + encodeURIComponent(f[0]) + ":ital,wght@0,600;0,700;1,400;1,500&family=" + encodeURIComponent(f[1]) + ":wght@400;500;600;700&display=swap";
+    document.head.appendChild(l);
+    css += `:root{--f-display:"${f[0]}", Georgia, serif;--f-body:"${f[1]}", system-ui, sans-serif}`;
+  }
+  if (css){ const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st); }
+})();
 const tipo = D.modo === "cafeteria" ? "cafeteria" : "particular";
 const $ = (s, r=document) => r.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -223,19 +249,19 @@ function home(){
       <div class="tx"><b>${esc(n)}</b>${SAB[n]?.desc ? `<small>${esc(SAB[n].desc)}</small>` : ""}</div></div>`).join("");
   return `<div class="pad">
     <header class="mast"><div class="logo"><img src="${LOGO}" alt="Après Home Bakery"></div>
-      <div class="tag">Galletas y repostería artesanal · Zapopan</div>
+      ${DT.tag ? `<div class="tag">${esc(DT.tag)}</div>` : ""}
       ${tipo === "cafeteria" ? `<span class="modepill">Pedidos para cafeterías · precios de mayoreo</span>` : ""}</header>
-    <section class="hero"><span class="eyebrow">¿Qué se te antoja?</span><h1>Arma tu pedido</h1>
-      <button class="btn" data-act="start">✦ ${cart.length ? `Continuar mi pedido (${cartCount()})` : "Empezar pedido"} →</button></section>
+    <section class="hero${DS.portada ? " photo" : ""}"${DS.portada ? ` style="background-image:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.18)),url('${String(DS.portada).replace(/'/g,"%27")}')"` : ""}>${DT.eyebrow ? `<span class="eyebrow">${esc(DT.eyebrow)}</span>` : ""}<h1>${esc(DT.titulo)}</h1>
+      <button class="btn" data-act="start">✦ ${cart.length ? `Continuar mi pedido (${cartCount()})` : esc(DT.boton)} →</button></section>
     ${C.aviso ? `<p class="aviso">${esc(C.aviso)}</p>` : ""}
-    ${names.length ? `<h2 class="sec-t">Nuestros sabores</h2><div class="flavs">${fl}</div>` : ""}
-    <div class="info">
+    ${names.length && DM.sabores ? `<h2 class="sec-t">${esc(DT.saboresT)}</h2><div class="flavs">${fl}</div>` : ""}
+    ${DM.info || (DM.instagram && IG) ? `<div class="info">`: ""}${DM.info ? `
       ${(C.diasEntrega||[]).length ? `<div><span>Entregas</span><b>${(C.diasEntrega||[]).map(i=>DIAS[i]).join(" y ")}</b></div>` : ""}
       ${C.zonaRecoge ? `<div><span>Recoger</span><b>${esc(C.zonaRecoge)}</b></div>` : ""}
       <div><span>Anticipación</span><b>${num(C.anticipacion)} días</b></div>
-      ${C.waVer ? `<div><span>WhatsApp</span><b>${esc(C.waVer)}</b></div>` : ""}
-      <div><span>Instagram</span><b>@apres.bakery</b></div>
-    </div></div>`;
+      ${C.waVer ? `<div><span>WhatsApp</span><b>${esc(C.waVer)}</b></div>` : ""}` : ""}
+      ${DM.instagram && IG ? `<div><span>Instagram</span><b><a href="https://instagram.com/${esc(IG.replace(/^@/,""))}" target="_blank" rel="noopener" style="color:inherit">${esc(IG)}</a></b></div>` : ""}
+    ${DM.info || (DM.instagram && IG) ? `</div>` : ""}</div>`;
 }
 function topBar(eb, title, backTo, extra=""){
   return `<div class="top pad"><button class="back" data-act="go" data-v="${backTo}" aria-label="Regresar">‹</button><div style="flex:1;min-width:0"><div class="eb">${eb}</div><h2>${title}</h2></div>${extra}</div>`;

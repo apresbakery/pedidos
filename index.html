@@ -378,11 +378,12 @@ function resumen(){
 /* ---------- datos + envío ---------- */
 function minDate(){ const d = new Date(); d.setDate(d.getDate() + num(C.anticipacion||0)); return ymd(d); }
 function dayState(s){
+  if (s < minDate()) return "sin anticipación";
   const dw = parseD(s).getDay();
   if (F.modo === "entrega") return (C.diasEntrega||[]).includes(dw) ? "ok" : "sin entrega";
   return (C.diasCerrado||[]).includes(dw) ? "cerrado" : "ok";
 }
-function dateList(){ const out = []; let d = parseD(minDate()); for (let i=0;i<18;i++){ out.push(ymd(d)); d.setDate(d.getDate()+1); } return out; }
+function dateList(){ const out = []; let d = new Date(); d.setDate(d.getDate()+1); const n = 18 + num(C.anticipacion||0); for (let i=0;i<n;i++){ out.push(ymd(d)); d.setDate(d.getDate()+1); } return out; }
 function nextValid(){ return dateList().find(s => dayState(s) === "ok") || ""; }
 const comPct = () => F.pago === "tarjeta" ? num(C.comision) : 0;
 const comision = () => Math.round(subtotal() * comPct()) / 100;
@@ -430,7 +431,7 @@ function datos(){
         <button class="ccard" data-act="modo" data-v="entrega" aria-pressed="${F.modo==="entrega"}"><b>Entrega a domicilio</b><small>${(C.diasEntrega||[]).map(i=>DIAS[i]).join(" y ")} · Guadalajara y Zapopan</small></button>
         <button class="ccard" data-act="modo" data-v="recoge" aria-pressed="${F.modo==="recoge"}"><b>Recoger en Après</b><small>${esc(C.zonaRecoge||"")} · te mandamos la ubicación</small></button></div></div>
       ${F.modo==="entrega" ? `<div class="field"><label class="lbl" for="f-dir">Dirección de entrega</label><input id="f-dir" data-f="dir" value="${esc(F.dir)}" placeholder="Calle, número, colonia, municipio" autocomplete="street-address"></div>` : ""}
-      <div class="field"><span class="lbl">Fecha</span><div class="days">${days}</div><span class="hint">Pedidos con ${num(C.anticipacion)} días de anticipación.</span></div>
+      <div class="field"><span class="lbl">Fecha</span><div class="days">${days}</div><span class="hint">Pedidos con ${num(C.anticipacion)} días de anticipación: hoy puedes pedir para el <b>${fmtDay(minDate())}</b> en adelante.</span></div>
       <div class="field"><label class="lbl" for="f-hora">Horario preferido (opcional)</label><input id="f-hora" data-f="hora" value="${esc(F.hora)}" placeholder="Ej. antes de las 10 am"></div>
       <div class="field"><span class="lbl">Forma de pago</span><div class="cards">
         ${pay("transferencia","Transferencia","Mandas tu comprobante por WhatsApp")}
@@ -526,4 +527,5 @@ load(); render();
 </script>
 
 
+</body></html>
 </html>
